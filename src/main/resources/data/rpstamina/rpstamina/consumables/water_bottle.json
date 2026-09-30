@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:potion",
+  "nbt": { "Potion": "minecraft:water" },
+  "instant": 120,
+  "instant_ticks": 200,
+  "passive_per_tick": 0.03,
+  "duration_ticks": 400,
+  "group": "water"
+}

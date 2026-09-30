@@ -1,0 +1,5 @@
+{
+  "gain": 0.1,
+  "decay_per_tick": 0.001,
+  "max": 2.0
+}

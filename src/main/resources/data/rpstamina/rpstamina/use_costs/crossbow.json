@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:crossbow",
+  "on_start": 6,
+  "per_tick": 0.2,
+  "hold_after_ticks": 60,
+  "hold_per_tick": 1.0
+}

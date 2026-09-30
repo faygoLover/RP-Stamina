@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:bow",
+  "on_start": 4,
+  "per_tick": 0.3,
+  "hold_after_ticks": 40,
+  "hold_per_tick": 1.2
+}

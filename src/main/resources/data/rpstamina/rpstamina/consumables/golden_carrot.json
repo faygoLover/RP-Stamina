@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:golden_carrot",
+  "instant": 150,
+  "instant_ticks": 200,
+  "passive_per_tick": 0.02,
+  "duration_ticks": 600,
+  "group": "food"
+}

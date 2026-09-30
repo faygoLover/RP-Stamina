@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:honey_bottle",
+  "instant": 200,
+  "instant_ticks": 200,
+  "passive_per_tick": 0.05,
+  "duration_ticks": 600,
+  "group": "sugar"
+}

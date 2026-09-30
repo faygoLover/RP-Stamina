@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:trident",
+  "on_start": 8,
+  "per_tick": 0.4,
+  "hold_after_ticks": 20,
+  "hold_per_tick": 0.8
+}
