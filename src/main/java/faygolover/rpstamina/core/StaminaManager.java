@@ -85,7 +85,18 @@ public final class StaminaManager {
         if (armor) amount *= burdenMultiplier(p, s);
         StaminaConsumeEvent event = new StaminaConsumeEvent(p, id, (float) amount);
         if (MinecraftForge.EVENT_BUS.post(event) || event.getAmount() <= 0f) return;
+        float before = s.stamina;
         spend(p, s, event.getAmount(), continuous);
+        // Нагрузка качает Силу и Форму (навыки ведёт RP Perks через RP Core): сотни потраченной выносливости.
+        float spent = Math.max(0f, before - s.stamina);
+        if (spent > 0f) {
+            net.minecraft.resources.ResourceLocation skill = switch (category) {
+                case MOVE, SWIM -> faygolover.rpcore.api.RpIds.FITNESS;
+                case MINE, MELEE -> faygolover.rpcore.api.RpIds.STRENGTH;
+                case OTHER -> id.getPath().startsWith("shield") ? faygolover.rpcore.api.RpIds.STRENGTH : null;
+            };
+            if (skill != null) faygolover.rpcore.api.RpCoreAPI.practice(p, skill, spent / 100.0);
+        }
     }
 
     private static double categoryMultiplier(ServerPlayer p, Source.Category category) {
