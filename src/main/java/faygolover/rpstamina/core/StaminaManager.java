@@ -96,6 +96,8 @@ public final class StaminaManager {
                 case OTHER -> id.getPath().startsWith("shield") ? faygolover.rpcore.api.RpIds.STRENGTH : null;
             };
             if (skill != null) faygolover.rpcore.api.RpCoreAPI.practice(p, skill, spent / 100.0);
+            // Мод питания (RP Culinary) считает по нагрузке калории и воду.
+            faygolover.rpcore.api.RpCoreAPI.exertion(p, spent);
         }
     }
 
@@ -417,6 +419,8 @@ public final class StaminaManager {
     /** Восстановление выносливости расходует голод/насыщение через ванильную усталость (exhaustion). */
     private static void chargeFood(FoodData food, float restored) {
         if (restored <= 0f || !Config.REGEN_COSTS_FOOD.get()) return;
+        // Голод ведёт мод питания (RP Culinary): нагрузку он получает через RP Core, ванильная сытость не тратится.
+        if (faygolover.rpcore.api.RpCoreAPI.nutritionHandles(faygolover.rpcore.api.RpIds.FOOD_HUNGER)) return;
         double perHundred = Config.FOOD_COST_PER_100.get();
         if (perHundred > 0.0) food.addExhaustion((float) (restored * perHundred / 100.0));
     }
@@ -448,10 +452,19 @@ public final class StaminaManager {
         }
 
         float foodMult = 1f;
-        int level = food.getFoodLevel();
-        if (level <= 0) foodMult = Config.ZERO_FOOD_MULT.get().floatValue();
-        else if (level < Config.LOW_FOOD_THRESHOLD.get()) foodMult = Config.LOW_FOOD_MULT.get().floatValue();
-        else if (food.getSaturationLevel() > 0f) foodMult = 1f + Config.SATURATION_BONUS.get().floatValue();
+        var nutrition = faygolover.rpcore.api.RpCoreAPI.nutrition();
+        if (nutrition != null && nutrition.handles(faygolover.rpcore.api.RpIds.FOOD_HUNGER)) {
+            // Голод из RP Culinary: голодает — как без еды, очень голоден — как при низком голоде, сыт — бонус.
+            int stage = nutrition.hungerStage(p);
+            if (stage >= 3) foodMult = Config.ZERO_FOOD_MULT.get().floatValue();
+            else if (stage == 2) foodMult = Config.LOW_FOOD_MULT.get().floatValue();
+            else if (nutrition.satiety(p) >= 0.8) foodMult = 1f + Config.SATURATION_BONUS.get().floatValue();
+        } else {
+            int level = food.getFoodLevel();
+            if (level <= 0) foodMult = Config.ZERO_FOOD_MULT.get().floatValue();
+            else if (level < Config.LOW_FOOD_THRESHOLD.get()) foodMult = Config.LOW_FOOD_MULT.get().floatValue();
+            else if (food.getSaturationLevel() > 0f) foodMult = 1f + Config.SATURATION_BONUS.get().floatValue();
+        }
 
         float amount = s.regenRate
                 * (float) attr(p, StaminaAttributes.REGEN_MULTIPLIER.get(), 1.0)
