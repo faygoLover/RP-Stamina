@@ -39,6 +39,7 @@ public class RpStamina {
     private void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(NetworkHandler::register);
         event.enqueueWork(DataLoaders::ensureCustomDir);
+        event.enqueueWork(() -> faygolover.rpcore.api.RpCoreAPI.registerModule(MODID, "выносливость: траты, восстановление, предметы"));
         LOGGER.info("RP Stamina loaded.");
     }
 }

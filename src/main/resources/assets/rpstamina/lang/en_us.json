@@ -1,4 +1,5 @@
 {
+  "hud.rpstamina.bar": "Stamina",
   "attribute.name.rpstamina.max_stamina": "Max Stamina",
   "attribute.name.rpstamina.regen_multiplier": "Stamina Regeneration",
   "attribute.name.rpstamina.cost_multiplier": "Stamina Cost",

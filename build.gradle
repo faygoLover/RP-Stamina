@@ -47,8 +47,15 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// RP Core (обязательная зависимость семейства RP) — jar в libs/.
+repositories {
+    flatDir { dir 'libs' }
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    // RP Core — общая библиотека семейства: навыки, черты, общий HUD и редактор.
+    implementation fg.deobf("blank:rpcore:${rpcore_version}")
 }
 
 tasks.named('processResources', ProcessResources).configure {

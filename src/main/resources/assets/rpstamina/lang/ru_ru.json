@@ -1,4 +1,5 @@
 {
+  "hud.rpstamina.bar": "Выносливость",
   "attribute.name.rpstamina.max_stamina": "Максимальная выносливость",
   "attribute.name.rpstamina.regen_multiplier": "Восстановление выносливости",
   "attribute.name.rpstamina.cost_multiplier": "Расход выносливости",

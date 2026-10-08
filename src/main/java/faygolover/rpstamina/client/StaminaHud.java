@@ -7,7 +7,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 
-/** Минималистичная полоска выносливости (оверлей над шкалой опыта, положение — в клиентском конфиге). */
+/**
+ * Минималистичная полоска выносливости. Рисуется в общем HUD RP Core ({@link Element}); двигать — в общем
+ * редакторе ({@code /rphud} или {@code /staminahud}). Первое положение берётся из старого клиентского конфига.
+ */
 public final class StaminaHud {
     private static float fade = 0f;
 
@@ -23,10 +26,64 @@ public final class StaminaHud {
         return new int[]{x, y, w, h};
     }
 
-    /** Точка входа оверлея (сигнатура IGuiOverlay). */
-    public static void render(ForgeGui gui, GuiGraphics g, float partialTick, int screenW, int screenH) {
+    /** Элемент общего HUD RP Core. */
+    public static final class Element implements faygolover.rpcore.client.hud.HudElement {
+        private static final net.minecraft.resources.ResourceLocation ID = new net.minecraft.resources.ResourceLocation(faygolover.rpstamina.RpStamina.MODID, "bar");
+
+        @Override
+        public net.minecraft.resources.ResourceLocation id() {
+            return ID;
+        }
+
+        @Override
+        public net.minecraft.network.chat.Component title() {
+            return net.minecraft.network.chat.Component.translatable("hud.rpstamina.bar");
+        }
+
+        @Override
+        public int width() {
+            return ClientConfig.WIDTH.get();
+        }
+
+        @Override
+        public int height() {
+            return ClientConfig.HEIGHT.get();
+        }
+
+        @Override
+        public faygolover.rpcore.client.hud.Anchor defaultAnchor() {
+            return faygolover.rpcore.client.hud.Anchor.parse(ClientConfig.ANCHOR.get().name(), faygolover.rpcore.client.hud.Anchor.BOTTOM_CENTER);
+        }
+
+        @Override
+        public int defaultX() {
+            return ClientConfig.OFFSET_X.get();
+        }
+
+        @Override
+        public int defaultY() {
+            return ClientConfig.OFFSET_Y.get();
+        }
+
+        @Override
+        public boolean defaultVisible() {
+            return ClientConfig.ENABLED.get();
+        }
+
+        @Override
+        public void render(GuiGraphics g, float partialTick, boolean preview) {
+            if (preview) {
+                drawBar(g, 0, 0, width(), height(), 0.7f, false, 1f);
+                return;
+            }
+            StaminaHud.render(g, partialTick);
+        }
+    }
+
+    /** Полоска в локальных координатах элемента (0,0 — левый верхний угол). */
+    static void render(GuiGraphics g, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
-        if (!ClientConfig.ENABLED.get() || !ClientStamina.active || mc.options.hideGui || mc.player == null) return;
+        if (!ClientStamina.active || mc.player == null) return;
 
         float value = ClientStamina.lerp(partialTick);
         float frac = ClientStamina.max > 0f ? Mth.clamp(value / ClientStamina.max, 0f, 1f) : 0f;
@@ -35,8 +92,7 @@ public final class StaminaHud {
         fade += (target - fade) * 0.08f;
         if (fade < 0.03f) return;
 
-        int[] l = layout(screenW, screenH);
-        drawBar(g, l[0], l[1], l[2], l[3], frac, ClientStamina.exhausted, fade);
+        drawBar(g, 0, 0, ClientConfig.WIDTH.get(), ClientConfig.HEIGHT.get(), frac, ClientStamina.exhausted, fade);
     }
 
     public static void drawBar(GuiGraphics g, int x, int y, int w, int h, float frac, boolean exhausted, float alpha) {

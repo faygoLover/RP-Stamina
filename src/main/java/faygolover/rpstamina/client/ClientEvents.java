@@ -40,7 +40,7 @@ public final class ClientEvents {
         // Чат закрывается после выполнения команды — открываем редактор уже после него
         if (mc.player != null && !(mc.screen instanceof ChatScreen)) {
             openEditor = false;
-            mc.setScreen(new HudEditorScreen());
+            mc.setScreen(new faygolover.rpcore.client.hud.HudEditorScreen());
         }
     }
 

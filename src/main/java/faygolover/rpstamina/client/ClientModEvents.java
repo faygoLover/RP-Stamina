@@ -12,8 +12,9 @@ import net.minecraftforge.fml.common.Mod;
 public final class ClientModEvents {
     private ClientModEvents() {}
 
+    /** Полоска — элемент общего HUD RP Core (один редактор для всех модов семейства). */
     @SubscribeEvent
-    public static void onRegisterOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerAbove(VanillaGuiOverlay.EXPERIENCE_BAR.id(), "bar", StaminaHud::render);
+    public static void onClientSetup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
+        event.enqueueWork(() -> faygolover.rpcore.client.hud.HudRegistry.register(new StaminaHud.Element()));
     }
 }
