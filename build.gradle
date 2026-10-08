@@ -42,6 +42,11 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', mod_id
             args '--nogui'
         }
+
+        // Проверка загрузки (мод + RP Core без остальных): ./gradlew runGameTestServer — сервер стартует и выходит.
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
     }
 }
 
