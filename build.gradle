@@ -1,9 +1,21 @@
+buildscript {
+    repositories {
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+
 plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
+
+apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
 group = mod_group_id
@@ -50,6 +62,12 @@ minecraft {
     }
 }
 
+// Одна клиентская вставка: проверка «можно ли бежать» (LocalPlayerMixin).
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
+
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 // RP Core (обязательная зависимость семейства RP) — jar в libs/.
@@ -61,6 +79,8 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     // RP Core — общая библиотека семейства: навыки, черты, общий HUD и редактор.
     implementation fg.deobf("blank:rpcore:${rpcore_version}")
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 tasks.named('processResources', ProcessResources).configure {

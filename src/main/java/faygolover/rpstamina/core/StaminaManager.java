@@ -509,6 +509,47 @@ public final class StaminaManager {
     }
 
     // =====================================================================
+    // Время RP (/rptime sleep|skip, RP Core)
+    // =====================================================================
+
+    /**
+     * Прошло {@code ticks} тиков без игры: привыкание к предметам спадает, действие предметов и откат кончаются.
+     * Во сне выносливость полная; бодрствуя — восстанавливается как стоя.
+     */
+    public static void elapse(ServerPlayer p, PlayerStamina s, long ticks, boolean sleeping) {
+        if (ticks <= 0 || !isActive(p)) return;
+        ensureInit(p, s);
+        Iterator<Map.Entry<String, Float>> tol = s.tolerance.entrySet().iterator();
+        while (tol.hasNext()) {
+            Map.Entry<String, Float> e = tol.next();
+            StaminaData.Group g = StaminaData.group(e.getKey());
+            float v = (float) (e.getValue() - (g == null ? 0.0003f : g.decayPerTick()) * ticks);
+            if (v <= 0f) tol.remove();
+            else e.setValue(v);
+        }
+        s.pools.clear();
+        for (PlayerStamina.Passive a : s.passives) {
+            // Действие кончилось — откат успел пройти на остаток времени.
+            if (a.crash == null || a.ticks > ticks) continue;
+            long left = a.crash.durationTicks() - (ticks - a.ticks);
+            if (left > 0) startCrash(s, new PlayerStamina.Crash((int) left, a.crash.regenMultiplier(), 0));
+        }
+        s.passives.removeIf(a -> a.ticks <= ticks);
+        for (PlayerStamina.Passive a : s.passives) a.ticks -= (int) ticks;
+        if (s.crashTicks > 0) {
+            s.crashTicks = (int) Math.max(0, s.crashTicks - ticks);
+            if (s.crashTicks == 0) s.crashMult = 1f;
+        }
+        s.delay = 0;
+        s.slowTicks = 0;
+        s.regenRate = 0f;
+        float max = max(p);
+        s.stamina = sleeping ? max : (float) Math.min(max, s.stamina + Config.REGEN_STAND.get() * ticks);
+        if (s.stamina >= max * Config.RESUME_FRACTION.get().floatValue()) s.exhausted = false;
+        s.forceSync = true;
+    }
+
+    // =====================================================================
     // Синхронизация с клиентом
     // =====================================================================
 

@@ -2,7 +2,7 @@ package faygolover.rpstamina;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
-/** Клиентский конфиг: полоска выносливости. Положение можно менять прямо в игре командой /staminahud. */
+/** Клиентский конфиг: полоска выносливости. Положение и масштаб меняются в общем редакторе HUD: /rphud (RP Core). */
 public final class ClientConfig {
     private static final ForgeConfigSpec.Builder B = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;

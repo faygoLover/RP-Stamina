@@ -39,7 +39,12 @@ public class RpStamina {
     private void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(NetworkHandler::register);
         event.enqueueWork(DataLoaders::ensureCustomDir);
-        event.enqueueWork(() -> faygolover.rpcore.api.RpCoreAPI.registerModule(MODID, "выносливость: траты, восстановление, предметы"));
+        event.enqueueWork(() -> {
+            faygolover.rpcore.api.RpCoreAPI.registerModule(MODID, "выносливость: траты, восстановление, предметы");
+            // Розетка выносливости RP Core: другие моды спрашивают выносливость и вешают модификаторы через неё.
+            faygolover.rpcore.api.RpCoreAPI.registerStamina(new faygolover.rpstamina.integration.CoreStamina());
+            faygolover.rpstamina.command.StaminaCommand.describe();
+        });
         LOGGER.info("RP Stamina loaded.");
     }
 }

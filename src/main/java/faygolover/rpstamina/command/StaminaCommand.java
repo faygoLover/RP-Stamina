@@ -2,6 +2,7 @@ package faygolover.rpstamina.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import faygolover.rpcore.api.RpCoreAPI;
 import faygolover.rpstamina.RpStamina;
 import faygolover.rpstamina.capability.PlayerStamina;
 import faygolover.rpstamina.capability.StaminaProvider;
@@ -19,7 +20,10 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.Collection;
 import java.util.Locale;
 
-/** /stamina get|set|add|refill|reload|export_defaults|debug (нужны права оператора). */
+/**
+ * /rpstamina get|set|add|refill|reload (нужны права оператора); отладочные export_defaults и debug — только если в
+ * конфиге RP Core включены отладочные команды ({@code commands.debug_commands}).
+ */
 @Mod.EventBusSubscriber(modid = RpStamina.MODID)
 public final class StaminaCommand {
     private StaminaCommand() {}
@@ -30,7 +34,7 @@ public final class StaminaCommand {
     }
 
     private static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("stamina")
+        d.register(Commands.literal("rpstamina")
                 .requires(src -> src.hasPermission(2))
                 .then(Commands.literal("get")
                         .executes(c -> get(c.getSource(), c.getSource().getPlayerOrException()))
@@ -51,11 +55,24 @@ public final class StaminaCommand {
                         .then(Commands.argument("players", EntityArgument.players())
                                 .executes(c -> refill(c.getSource(), EntityArgument.getPlayers(c, "players")))))
                 .then(Commands.literal("reload").executes(c -> reload(c.getSource())))
-                .then(Commands.literal("export_defaults").executes(c -> export(c.getSource())))
-                .then(Commands.literal("debug")
+                .then(Commands.literal("export_defaults").requires(src -> RpCoreAPI.debugCommands())
+                        .executes(c -> export(c.getSource())))
+                .then(Commands.literal("debug").requires(src -> RpCoreAPI.debugCommands())
                         .executes(c -> debug(c.getSource(), c.getSource().getPlayerOrException()))
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(c -> debug(c.getSource(), EntityArgument.getPlayer(c, "player"))))));
+    }
+
+    /** Команды для общего списка {@code /rpcore commands}. */
+    public static void describe() {
+        String m = RpStamina.MODID;
+        RpCoreAPI.registerCommand(m, "/rpstamina get [игрок]", "commands.rpstamina.help.get", 2, false);
+        RpCoreAPI.registerCommand(m, "/rpstamina set <игроки> <число>", "commands.rpstamina.help.set", 2, false);
+        RpCoreAPI.registerCommand(m, "/rpstamina add <игроки> <число>", "commands.rpstamina.help.add", 2, false);
+        RpCoreAPI.registerCommand(m, "/rpstamina refill [игроки]", "commands.rpstamina.help.refill", 2, false);
+        RpCoreAPI.registerCommand(m, "/rpstamina reload", "commands.rpstamina.help.reload", 2, false);
+        RpCoreAPI.registerCommand(m, "/rpstamina export_defaults", "commands.rpstamina.help.export", 2, true);
+        RpCoreAPI.registerCommand(m, "/rpstamina debug [игрок]", "commands.rpstamina.help.debug", 2, true);
     }
 
     private static String fmt(double v) {

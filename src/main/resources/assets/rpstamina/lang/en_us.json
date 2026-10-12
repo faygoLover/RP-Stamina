@@ -21,5 +21,12 @@
   "commands.rpstamina.reload": "Custom stamina data reloaded from the config folder",
   "commands.rpstamina.export": "Exported %s default file(s) to %s",
   "commands.rpstamina.debug": "%s: stamina=%s/%s rate=%s/tick delay=%s exhausted=%s slow=%s burden=x%s crash=%s pools=%s effects=%s",
-  "commands.rpstamina.inactive": "%s: stamina is inactive for this player (creative/spectator or mod disabled)"
+  "commands.rpstamina.inactive": "%s: stamina is inactive for this player (creative/spectator or mod disabled)",
+  "commands.rpstamina.help.get": "player's stamina",
+  "commands.rpstamina.help.set": "set stamina",
+  "commands.rpstamina.help.add": "add or remove stamina",
+  "commands.rpstamina.help.refill": "fully restore stamina",
+  "commands.rpstamina.help.reload": "reload custom data files from the config folder",
+  "commands.rpstamina.help.export": "export default data files to the config folder (debug)",
+  "commands.rpstamina.help.debug": "full stamina state of a player (debug)"
 }

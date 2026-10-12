@@ -9,7 +9,7 @@ import net.minecraftforge.client.gui.overlay.ForgeGui;
 
 /**
  * Минималистичная полоска выносливости. Рисуется в общем HUD RP Core ({@link Element}); двигать — в общем
- * редакторе ({@code /rphud} или {@code /staminahud}). Первое положение берётся из старого клиентского конфига.
+ * редакторе ({@code /rphud}). Первое положение берётся из старого клиентского конфига.
  */
 public final class StaminaHud {
     private static float fade = 0f;

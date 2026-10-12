@@ -44,7 +44,7 @@ import java.util.function.BiConsumer;
 /**
  * Загрузка данных: data/&lt;ns&gt;/rpstamina/&lt;категория&gt;/*.json из мода и датапаков,
  * плюс слой «своих» файлов в config/rpstamina_custom/&lt;категория&gt;/*.json (перекрывает
- * одноимённые записи rpstamina:&lt;имя&gt; и добавляет новые). Слой конфига перечитывается командой /stamina reload.
+ * одноимённые записи rpstamina:&lt;имя&gt; и добавляет новые). Слой конфига перечитывается командой /rpstamina reload.
  */
 @Mod.EventBusSubscriber(modid = RpStamina.MODID)
 public final class DataLoaders {
@@ -320,8 +320,9 @@ public final class DataLoaders {
               blocks/       множители трат на добычу блоков
 
             Команды (нужны права оператора):
-              /stamina export_defaults  — записать сюда копии данных по умолчанию (существующие файлы не трогает)
-              /stamina reload           — перечитать эту папку без перезапуска
+              /rpstamina export_defaults  — записать сюда копии данных по умолчанию (существующие файлы не трогает;
+                                           отладочная: включается в config/rpcore-common.toml, debug_commands)
+              /rpstamina reload           — перечитать эту папку без перезапуска
               (изменения в самом моде/датапаках подхватываются обычным /reload)
 
             Формат consumables (одна запись на файл; можно и массив записей):

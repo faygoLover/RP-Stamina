@@ -21,5 +21,12 @@
   "commands.rpstamina.reload": "Пользовательские данные выносливости перечитаны из папки конфига",
   "commands.rpstamina.export": "Экспортировано файлов по умолчанию: %s (папка: %s)",
   "commands.rpstamina.debug": "%s: выносливость=%s/%s реген=%s/тик задержка=%s измотан=%s замедление=%s тяжесть=x%s откат=%s пулов=%s эффектов=%s",
-  "commands.rpstamina.inactive": "%s: выносливость не действует на этого игрока (креатив/наблюдатель или мод выключен)"
+  "commands.rpstamina.inactive": "%s: выносливость не действует на этого игрока (креатив/наблюдатель или мод выключен)",
+  "commands.rpstamina.help.get": "сколько выносливости у игрока",
+  "commands.rpstamina.help.set": "выставить выносливость",
+  "commands.rpstamina.help.add": "прибавить или отнять выносливость",
+  "commands.rpstamina.help.refill": "восстановить выносливость полностью",
+  "commands.rpstamina.help.reload": "перечитать свои файлы данных из папки конфига",
+  "commands.rpstamina.help.export": "выгрузить файлы данных по умолчанию в папку конфига (отладка)",
+  "commands.rpstamina.help.debug": "всё состояние выносливости игрока (отладка)"
 }
