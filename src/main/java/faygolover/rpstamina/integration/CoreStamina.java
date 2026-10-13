@@ -35,6 +35,11 @@ public final class CoreStamina implements StaminaProvider {
     }
 
     @Override
+    public void restore(Player player, float amount, ResourceLocation source) {
+        if (amount > 0f && player instanceof ServerPlayer sp) StaminaAPI.add(sp, amount);
+    }
+
+    @Override
     public Attribute attribute(Stat stat) {
         return switch (stat) {
             case MAX -> StaminaAttributes.MAX_STAMINA.get();
