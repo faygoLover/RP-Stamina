@@ -28,5 +28,6 @@
   "commands.rpstamina.help.refill": "fully restore stamina",
   "commands.rpstamina.help.reload": "reload custom data files from the config folder",
   "commands.rpstamina.help.export": "export default data files to the config folder (debug)",
-  "commands.rpstamina.help.debug": "full stamina state of a player (debug)"
+  "commands.rpstamina.help.debug": "full stamina state of a player (debug)",
+  "message.rpstamina.second_wind": "Second wind — strength is back!"
 }

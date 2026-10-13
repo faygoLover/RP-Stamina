@@ -207,7 +207,9 @@ public final class DataLoaders {
                     GsonHelper.getAsInt(o, "duration_ticks", 0),
                     group,
                     GsonHelper.getAsInt(o, "cooldown_ticks", 0),
-                    crash));
+                    crash,
+                    GsonHelper.getAsFloat(o, "regen_multiplier", 1f),
+                    GsonHelper.getAsInt(o, "regen_ticks", 0)));
         });
         // Записи с NBT проверяются раньше общих (например, вода раньше любого зелья)
         list.sort(Comparator.comparingInt(c -> c.matcher().nbt() == null ? 1 : 0));
@@ -313,7 +315,8 @@ public final class DataLoaders {
             Обычные датапаки тоже работают: data/<namespace>/rpstamina/<категория>/<имя>.json
 
             Категории (подпапки):
-              consumables/  восстанавливающие предметы
+              consumables/  восстанавливающие предметы: вода (слабо) и стимуляторы. Обычная еда сюда не входит —
+                            еда выносливость не восстанавливает и восстановление не ускоряет.
               groups/       группы толерантности (кофеин, сахар...)
               use_costs/    траты при использовании предметов (лук, арбалет, трезубец...)
               weapons/      множители ударов для оружия (или "ignore": true)
@@ -335,6 +338,8 @@ public final class DataLoaders {
               "duration_ticks": 400,                  // длительность passive_per_tick
               "group": "water",                       // группа толерантности (файл groups/water.json)
               "cooldown_ticks": 0,                    // необязательный жёсткий откат предмета
+              "regen_multiplier": 1.3,                // стимулятор: множитель восстановления (1.3 = на 30% быстрее)
+              "regen_ticks": 12000,                   // сколько действует (12000 = 10 минут)
               "crash": {                              // необязательный откат после действия предмета
                 "duration_ticks": 600, "regen_multiplier": 0.5, "delay_ticks": 100
               }

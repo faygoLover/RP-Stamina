@@ -17,9 +17,13 @@ import java.util.Map;
 public final class StaminaData {
     private StaminaData() {}
 
+    /**
+     * Восстанавливающий предмет. Еда сама по себе выносливость не восстанавливает (решение 13.10.2026): сюда — вода
+     * (слабо) и стимуляторы ({@code regenMultiplier} — множитель восстановления на {@code regenTicks}, потом откат).
+     */
     public record Consumable(ItemMatcher matcher, float instant, int instantTicks, float passivePerTick,
                              int durationTicks, @Nullable String group, int cooldownTicks,
-                             @Nullable PlayerStamina.Crash crash) {}
+                             @Nullable PlayerStamina.Crash crash, float regenMultiplier, int regenTicks) {}
 
     public record UseCost(ItemMatcher matcher, float onStart, float perTick, int holdAfterTicks, float holdPerTick) {}
 

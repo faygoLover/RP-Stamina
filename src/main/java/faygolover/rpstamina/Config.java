@@ -41,9 +41,15 @@ public final class Config {
     public static final ForgeConfigSpec.DoubleValue REGEN_CROUCH;
     public static final ForgeConfigSpec.DoubleValue REGEN_SIT;
     public static final ForgeConfigSpec.DoubleValue REGEN_SLEEP;
+    public static final ForgeConfigSpec.DoubleValue QUICK_REST_MULT;
+    public static final ForgeConfigSpec.DoubleValue SECOND_WIND_FRACTION;
+    public static final ForgeConfigSpec.IntValue SECOND_WIND_COOLDOWN;
+    public static final ForgeConfigSpec.BooleanValue AGE_AFFECTS;
 
     // ---- hunger ----
-    public static final ForgeConfigSpec.DoubleValue SATURATION_BONUS;
+    public static final ForgeConfigSpec.IntValue HUNGRY_THRESHOLD;
+    public static final ForgeConfigSpec.DoubleValue HUNGRY_MULT;
+    public static final ForgeConfigSpec.DoubleValue PASSIVE_FOOD_EXHAUSTION;
     public static final ForgeConfigSpec.IntValue LOW_FOOD_THRESHOLD;
     public static final ForgeConfigSpec.DoubleValue LOW_FOOD_MULT;
     public static final ForgeConfigSpec.DoubleValue ZERO_FOOD_MULT;
@@ -111,15 +117,24 @@ public final class Config {
         REGEN_WALK = d("walk_per_tick", 0.04, 0, 100, "Скорость восстановления при ходьбе/действиях (без трат), за тик.");
         REGEN_STAND = d("stand_per_tick", 0.12, 0, 100, "Стоит на месте (можно поворачивать камеру).");
         REGEN_CROUCH = d("crouch_per_tick", 0.20, 0, 100, "Стоит на месте и присел. Поставь равным stand_per_tick, чтобы отключить бонус.");
-        REGEN_SIT = d("sit_per_tick", 0.30, 0, 100, "Сидит на транспорте/сидении.");
+        REGEN_SIT = d("sit_per_tick", 0.30, 0, 100, "Сидит на транспорте/сидении (и на тренажёре).");
+        QUICK_REST_MULT = d("quick_rest_sit_multiplier", 2.0, 1, 10, "Особенность «Быстрый отдых»: во сколько раз быстрее восстанавливается сидя.");
+        SECOND_WIND_FRACTION = d("second_wind_fraction", 0.5, 0, 1, "Особенность «Второе дыхание»: какую долю запаса вернуть, когда выносливость упала до нуля.");
+        SECOND_WIND_COOLDOWN = i("second_wind_cooldown_minutes", 60, 1, 1440, "«Второе дыхание»: не чаще раза в N минут.");
+        AGE_AFFECTS = bool("age_affects_stamina", true, "Возраст из анкеты тела (RP Core) меняет запас и восстановление: до 18 ×0,9, 31–45 ×0,95, 46–60 ×0,85, 61+ ×0,7.");
         REGEN_SLEEP = d("sleep_per_tick", 0.50, 0, 100, "Лежит в кровати.");
         B.pop();
 
         B.push("hunger");
-        SATURATION_BONUS = d("saturation_bonus", 0.15, 0, 10, "Бонус к восстановлению, если у игрока есть насыщение (0.15 = +15%).");
-        LOW_FOOD_THRESHOLD = i("low_food_threshold", 4, 0, 20, "Ниже этого уровня голода (в очках, 2 очка = 1 иконка) восстановление замедляется.");
-        LOW_FOOD_MULT = d("low_food_multiplier", 0.5, 0, 1, "Множитель восстановления при низком голоде.");
-        ZERO_FOOD_MULT = d("zero_food_multiplier", 0.25, 0, 1, "Множитель восстановления при нулевом голоде.");
+        HUNGRY_THRESHOLD = i("hungry_food_threshold", 10, 0, 20,
+                "Без RP Culinary: ниже этого уровня голода (в очках, 2 очка = 1 иконка) — «голоден», восстановление медленнее.");
+        HUNGRY_MULT = d("hungry_multiplier", 0.75, 0, 1,
+                "Голоден (с RP Culinary — стадия «голоден» или «хочет пить»): множитель восстановления. Еда сама по себе восстановление не ускоряет.");
+        LOW_FOOD_THRESHOLD = i("low_food_threshold", 4, 0, 20, "Без RP Culinary: ниже этого уровня голода — «очень голоден».");
+        LOW_FOOD_MULT = d("low_food_multiplier", 0.5, 0, 1, "Очень голоден или очень хочет пить: множитель восстановления.");
+        ZERO_FOOD_MULT = d("zero_food_multiplier", 0.25, 0, 1, "Голодает или обезвожен: множитель восстановления.");
+        PASSIVE_FOOD_EXHAUSTION = d("passive_food_exhaustion_per_minute", 0.8, 0, 100,
+                "Без RP Culinary: голод тратится и просто от жизни — столько ванильной «усталости» в минуту (4.0 = одно очко голода). 0 — выключить.");
         REGEN_COSTS_FOOD = bool("regen_costs_food", true,
                 "Восстановление выносливости тратит голод/насыщение: и естественное, и от предметов (считается по фактически восстановленному). Выключи вместе с disable_vanilla_action_exhaustion, чтобы получить обычную ванильную механику голода.");
         FOOD_COST_PER_100 = d("regen_food_cost_per_100", 1.0, 0, 100,

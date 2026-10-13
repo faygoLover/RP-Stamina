@@ -27,6 +27,12 @@ public class PlayerStamina {
     // ---- предметы ----
     public final List<Pool> pools = new ArrayList<>();
     public final List<Passive> passives = new ArrayList<>();
+    /** Стимуляторы: множитель восстановления на время (кофе и т. п.). */
+    public final List<Boost> boosts = new ArrayList<>();
+    /** Восстановлено с прошлой отправки события в RP Core (калории за отдых у мода питания). */
+    public float restoredAcc = 0f;
+    /** «Второе дыхание»: игровое время, раньше которого не срабатывает снова. */
+    public long secondWindUntil = 0L;
     public int crashTicks = 0;
     public float crashMult = 1f;
     public final Map<String, Float> tolerance = new HashMap<>();
@@ -82,6 +88,19 @@ public class PlayerStamina {
     /** Откат после допинга (опционально, задаётся в датапаке). */
     public record Crash(int durationTicks, float regenMultiplier, int extraDelayTicks) {}
 
+    /** Стимулятор: множитель восстановления на {@code ticks} тиков, потом откат. */
+    public static final class Boost {
+        public final float multiplier;
+        public int ticks;
+        public final Crash crash;
+
+        public Boost(float multiplier, int ticks, Crash crash) {
+            this.multiplier = multiplier;
+            this.ticks = ticks;
+            this.crash = crash;
+        }
+    }
+
     /** Копирование при клонировании игрока (смерть / возврат из Энда). */
     public void copyFrom(PlayerStamina old, boolean death) {
         if (death) {
@@ -91,7 +110,9 @@ public class PlayerStamina {
             this.stamina = old.stamina;
             this.exhausted = old.exhausted;
             this.tolerance.putAll(old.tolerance);
+            this.boosts.addAll(old.boosts);
         }
+        this.secondWindUntil = old.secondWindUntil;
         this.forceSync = true;
     }
 
@@ -102,12 +123,14 @@ public class PlayerStamina {
         CompoundTag tol = new CompoundTag();
         tolerance.forEach(tol::putFloat);
         tag.put("tolerance", tol);
+        tag.putLong("secondWindUntil", secondWindUntil);
         return tag;
     }
 
     public void load(CompoundTag tag) {
         this.stamina = tag.contains("stamina") ? tag.getFloat("stamina") : -1f;
         this.exhausted = tag.getBoolean("exhausted");
+        this.secondWindUntil = tag.getLong("secondWindUntil");
         this.tolerance.clear();
         CompoundTag tol = tag.getCompound("tolerance");
         for (String key : tol.getAllKeys()) {

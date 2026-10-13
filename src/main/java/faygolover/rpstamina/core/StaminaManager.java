@@ -157,7 +157,23 @@ public final class StaminaManager {
         s.consumedThisTick = true;
         s.regenRate = 0f;
         s.delay = Math.max(s.delay, Config.REGEN_DELAY.get());
-        if (s.stamina <= 0f && !s.exhausted) enterExhausted(s);
+        if (s.stamina <= 0f && !s.exhausted && !secondWind(p, s)) enterExhausted(s);
+    }
+
+    /** Особенность «Второе дыхание» (RP Perks): раз в час при нуле — сразу часть запаса. */
+    private static boolean secondWind(ServerPlayer p, PlayerStamina s) {
+        if (!faygolover.rpcore.api.RpCoreAPI.hasTrait(p, faygolover.rpcore.api.RpIds.SECOND_WIND)) return false;
+        long now = p.level().getGameTime();
+        if (now < s.secondWindUntil) return false;
+        s.secondWindUntil = now + Config.SECOND_WIND_COOLDOWN.get() * 1200L;
+        float gain = max(p) * Config.SECOND_WIND_FRACTION.get().floatValue();
+        s.stamina = Math.min(max(p), s.stamina + gain);
+        s.restoredAcc += gain;
+        s.delay = 0;
+        s.forceSync = true;
+        p.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.rpstamina.second_wind")
+                .withStyle(net.minecraft.ChatFormatting.GOLD), true);
+        return true;
     }
 
     private static void enterExhausted(PlayerStamina s) {
@@ -168,7 +184,9 @@ public final class StaminaManager {
 
     public static void addDirect(ServerPlayer p, PlayerStamina s, float amount) {
         ensureInit(p, s);
+        float before = s.stamina;
         s.stamina = Mth.clamp(s.stamina + amount, 0f, max(p));
+        if (s.stamina > before) s.restoredAcc += s.stamina - before;
         if (s.stamina <= 0f && !s.exhausted) enterExhausted(s);
         s.forceSync = true;
     }
@@ -269,9 +287,14 @@ public final class StaminaManager {
         if (c.instant() > 0f) {
             s.pools.add(new PlayerStamina.Pool(c.instant() * efficiency / c.instantTicks(), c.instantTicks()));
         }
+        boolean boost = c.regenMultiplier() > 1f && c.regenTicks() > 0;
+        if (boost) {
+            // Привыкание ослабляет прибавку, а не сам откат.
+            s.boosts.add(new PlayerStamina.Boost(1f + (c.regenMultiplier() - 1f) * efficiency, c.regenTicks(), c.crash()));
+        }
         if (c.passivePerTick() > 0f && c.durationTicks() > 0) {
-            s.passives.add(new PlayerStamina.Passive(c.passivePerTick() * efficiency, c.durationTicks(), c.crash()));
-        } else if (c.crash() != null) {
+            s.passives.add(new PlayerStamina.Passive(c.passivePerTick() * efficiency, c.durationTicks(), boost ? null : c.crash()));
+        } else if (c.crash() != null && !boost) {
             startCrash(s, c.crash());
         }
         if (c.cooldownTicks() > 0) p.getCooldowns().addCooldown(stack.getItem(), c.cooldownTicks());
@@ -351,6 +374,8 @@ public final class StaminaManager {
         }
 
         tickTolerance(s);
+        tickPassiveHunger(food);
+        if (p.tickCount % 100 == 0) applyAge(p);
         tickItems(s, max, food);
         tickRegen(p, s, food, max, standing);
 
@@ -368,7 +393,38 @@ public final class StaminaManager {
         // Скорость плавных изменений за этот тик: клиент будет экстраполировать по ней между пакетами
         s.rate = s.flow;
         s.flow = 0f;
+        // Сколько восстановилось — раз в секунду в RP Core (мод питания берёт за это калории).
+        if (p.tickCount % 20 == 0 && s.restoredAcc > 0f) {
+            faygolover.rpcore.api.RpCoreAPI.staminaRestored(p, s.restoredAcc);
+            s.restoredAcc = 0f;
+        }
         sync(p, s, true);
+    }
+
+    private static final UUID AGE_MAX_UUID = UUID.fromString("c3d4e5f6-0718-4a29-b3c4-d5e6f7081921");
+    private static final UUID AGE_REGEN_UUID = UUID.fromString("c3d4e5f6-0718-4a29-b3c4-d5e6f7081922");
+
+    /** Возраст из анкеты тела (RP Core): запас и восстановление меняются вместе. */
+    private static void applyAge(ServerPlayer p) {
+        double f = Config.AGE_AFFECTS.get() ? faygolover.rpcore.api.BodyNorms.ageStamina(faygolover.rpcore.api.RpCoreAPI.profile(p).age()) : 1.0;
+        setModifier(p, StaminaAttributes.MAX_STAMINA.get(), AGE_MAX_UUID, "rpstamina age", f - 1.0);
+        setModifier(p, StaminaAttributes.REGEN_MULTIPLIER.get(), AGE_REGEN_UUID, "rpstamina age", f - 1.0);
+    }
+
+    private static void setModifier(ServerPlayer p, Attribute a, UUID id, String name, double amount) {
+        AttributeInstance inst = p.getAttribute(a);
+        if (inst == null) return;
+        AttributeModifier old = inst.getModifier(id);
+        if (old != null && Math.abs(old.getAmount() - amount) < 1e-9) return;
+        if (old != null) inst.removeModifier(id);
+        if (Math.abs(amount) > 1e-9) inst.addTransientModifier(new AttributeModifier(id, name, amount, AttributeModifier.Operation.MULTIPLY_BASE));
+    }
+
+    /** Без мода питания голод тратится и просто от жизни (ванильная трата на действия выключена). */
+    private static void tickPassiveHunger(FoodData food) {
+        if (faygolover.rpcore.api.RpCoreAPI.nutritionHandles(faygolover.rpcore.api.RpIds.FOOD_HUNGER)) return;
+        double perMinute = Config.PASSIVE_FOOD_EXHAUSTION.get();
+        if (perMinute > 0) food.addExhaustion((float) (perMinute / 1200.0));
     }
 
     private static void tickTolerance(PlayerStamina s) {
@@ -406,12 +462,23 @@ public final class StaminaManager {
                 }
             }
         }
+        if (!s.boosts.isEmpty()) {
+            Iterator<PlayerStamina.Boost> it = s.boosts.iterator();
+            while (it.hasNext()) {
+                PlayerStamina.Boost b = it.next();
+                if (--b.ticks <= 0) {
+                    it.remove();
+                    if (b.crash != null) startCrash(s, b.crash);
+                }
+            }
+        }
         if (s.crashTicks > 0 && --s.crashTicks == 0) s.crashMult = 1f;
         if (bonus > 0f) {
             float before = s.stamina;
             s.stamina = Math.min(max, s.stamina + bonus);
             float gained = s.stamina - before;
             s.flow += gained;
+            s.restoredAcc += gained;
             chargeFood(food, gained);
         }
     }
@@ -419,7 +486,7 @@ public final class StaminaManager {
     /** Восстановление выносливости расходует голод/насыщение через ванильную усталость (exhaustion). */
     private static void chargeFood(FoodData food, float restored) {
         if (restored <= 0f || !Config.REGEN_COSTS_FOOD.get()) return;
-        // Голод ведёт мод питания (RP Culinary): нагрузку он получает через RP Core, ванильная сытость не тратится.
+        // Голод ведёт мод питания (RP Culinary): он берёт калории за восстановленное (событие RP Core), ванильная сытость не тратится.
         if (faygolover.rpcore.api.RpCoreAPI.nutritionHandles(faygolover.rpcore.api.RpIds.FOOD_HUNGER)) return;
         double perHundred = Config.FOOD_COST_PER_100.get();
         if (perHundred > 0.0) food.addExhaustion((float) (restored * perHundred / 100.0));
@@ -440,7 +507,8 @@ public final class StaminaManager {
 
         double target;
         if (p.isSleeping()) target = Config.REGEN_SLEEP.get();
-        else if (p.isPassenger()) target = Config.REGEN_SIT.get();
+        else if (p.isPassenger()) target = Config.REGEN_SIT.get()
+                * (faygolover.rpcore.api.RpCoreAPI.hasTrait(p, faygolover.rpcore.api.RpIds.QUICK_REST) ? Config.QUICK_REST_MULT.get() : 1.0);
         else if (standing) target = p.isCrouching() ? Math.max(Config.REGEN_CROUCH.get(), Config.REGEN_STAND.get()) : Config.REGEN_STAND.get();
         else target = Config.REGEN_WALK.get();
 
@@ -451,24 +519,29 @@ public final class StaminaManager {
             s.regenRate = Math.min(t, s.regenRate + t / Math.max(1, Config.REGEN_RAMP_TICKS.get()));
         }
 
-        float foodMult = 1f;
+        // Голод и жажда мешают восстановлению (берётся худшее). Еда сама по себе его не ускоряет — только стимуляторы.
+        int stage;
         var nutrition = faygolover.rpcore.api.RpCoreAPI.nutrition();
         if (nutrition != null && nutrition.handles(faygolover.rpcore.api.RpIds.FOOD_HUNGER)) {
-            // Голод из RP Culinary: голодает — как без еды, очень голоден — как при низком голоде, сыт — бонус.
-            int stage = nutrition.hungerStage(p);
-            if (stage >= 3) foodMult = Config.ZERO_FOOD_MULT.get().floatValue();
-            else if (stage == 2) foodMult = Config.LOW_FOOD_MULT.get().floatValue();
-            else if (nutrition.satiety(p) >= 0.8) foodMult = 1f + Config.SATURATION_BONUS.get().floatValue();
+            stage = nutrition.hungerStage(p);
+            if (nutrition.handles(faygolover.rpcore.api.RpIds.FOOD_THIRST)) stage = Math.max(stage, nutrition.thirstStage(p));
         } else {
             int level = food.getFoodLevel();
-            if (level <= 0) foodMult = Config.ZERO_FOOD_MULT.get().floatValue();
-            else if (level < Config.LOW_FOOD_THRESHOLD.get()) foodMult = Config.LOW_FOOD_MULT.get().floatValue();
-            else if (food.getSaturationLevel() > 0f) foodMult = 1f + Config.SATURATION_BONUS.get().floatValue();
+            stage = level <= 0 ? 3 : level < Config.LOW_FOOD_THRESHOLD.get() ? 2 : level < Config.HUNGRY_THRESHOLD.get() ? 1 : 0;
         }
+        float foodMult = switch (stage) {
+            case 0 -> 1f;
+            case 1 -> Config.HUNGRY_MULT.get().floatValue();
+            case 2 -> Config.LOW_FOOD_MULT.get().floatValue();
+            default -> Config.ZERO_FOOD_MULT.get().floatValue();
+        };
+        float boost = 1f;
+        for (PlayerStamina.Boost b : s.boosts) boost *= b.multiplier;
 
         float amount = s.regenRate
                 * (float) attr(p, StaminaAttributes.REGEN_MULTIPLIER.get(), 1.0)
                 * foodMult
+                * boost
                 * (s.crashTicks > 0 ? s.crashMult : 1f);
         if (amount <= 0f) return;
 
@@ -478,6 +551,7 @@ public final class StaminaManager {
         float actual = Math.min(event.getAmount(), max - s.stamina);
         s.stamina += actual;
         s.flow += actual;
+        s.restoredAcc += actual;
         chargeFood(food, actual);
     }
 
@@ -536,6 +610,13 @@ public final class StaminaManager {
         }
         s.passives.removeIf(a -> a.ticks <= ticks);
         for (PlayerStamina.Passive a : s.passives) a.ticks -= (int) ticks;
+        for (PlayerStamina.Boost b : s.boosts) {
+            if (b.crash == null || b.ticks > ticks) continue;
+            long left = b.crash.durationTicks() - (ticks - b.ticks);
+            if (left > 0) startCrash(s, new PlayerStamina.Crash((int) left, b.crash.regenMultiplier(), 0));
+        }
+        s.boosts.removeIf(b -> b.ticks <= ticks);
+        for (PlayerStamina.Boost b : s.boosts) b.ticks -= (int) ticks;
         if (s.crashTicks > 0) {
             s.crashTicks = (int) Math.max(0, s.crashTicks - ticks);
             if (s.crashTicks == 0) s.crashMult = 1f;
@@ -544,7 +625,9 @@ public final class StaminaManager {
         s.slowTicks = 0;
         s.regenRate = 0f;
         float max = max(p);
+        float before = s.stamina;
         s.stamina = sleeping ? max : (float) Math.min(max, s.stamina + Config.REGEN_STAND.get() * ticks);
+        if (s.stamina > before) s.restoredAcc += s.stamina - before;
         if (s.stamina >= max * Config.RESUME_FRACTION.get().floatValue()) s.exhausted = false;
         s.forceSync = true;
     }

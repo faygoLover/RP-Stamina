@@ -28,5 +28,6 @@
   "commands.rpstamina.help.refill": "восстановить выносливость полностью",
   "commands.rpstamina.help.reload": "перечитать свои файлы данных из папки конфига",
   "commands.rpstamina.help.export": "выгрузить файлы данных по умолчанию в папку конфига (отладка)",
-  "commands.rpstamina.help.debug": "всё состояние выносливости игрока (отладка)"
+  "commands.rpstamina.help.debug": "всё состояние выносливости игрока (отладка)",
+  "message.rpstamina.second_wind": "«Второе дыхание» — силы вернулись!"
 }
