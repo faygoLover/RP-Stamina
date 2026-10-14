@@ -48,9 +48,16 @@ public final class StaminaManager {
     // Вспомогательное
     // =====================================================================
 
+    /**
+     * Тег игрока «выносливость считается даже в творческом»: его ставят моды семейства на время нагрузки, которую
+     * нельзя накрутить бесплатно (RP Stamina Sports — тренировки), и снимают, когда выносливость восстановилась.
+     */
+    public static final String FORCE_TAG = "rpstamina.force";
+
     public static boolean isActive(ServerPlayer p) {
         if (!Config.ENABLED.get()) return false;
-        return !(Config.SKIP_CREATIVE.get() && (p.isCreative() || p.isSpectator()));
+        if (p.isSpectator()) return !Config.SKIP_CREATIVE.get();
+        return !(Config.SKIP_CREATIVE.get() && p.isCreative()) || p.getTags().contains(FORCE_TAG);
     }
 
     private static double attr(LivingEntity e, Attribute a, double def) {
