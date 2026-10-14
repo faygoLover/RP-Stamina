@@ -16,16 +16,6 @@ public final class StaminaHud {
 
     private StaminaHud() {}
 
-    /** Прямоугольник полоски: {x, y, ширина, высота}. */
-    public static int[] layout(int screenW, int screenH) {
-        ClientConfig.Anchor anchor = ClientConfig.ANCHOR.get();
-        int w = ClientConfig.WIDTH.get();
-        int h = ClientConfig.HEIGHT.get();
-        int x = Math.round(screenW * anchor.fx - w * anchor.fx) + ClientConfig.OFFSET_X.get();
-        int y = Math.round(screenH * anchor.fy - h * anchor.fy) + ClientConfig.OFFSET_Y.get();
-        return new int[]{x, y, w, h};
-    }
-
     /** Элемент общего HUD RP Core. */
     public static final class Element implements faygolover.rpcore.client.hud.HudElement {
         private static final net.minecraft.resources.ResourceLocation ID = new net.minecraft.resources.ResourceLocation(faygolover.rpstamina.RpStamina.MODID, "bar");
