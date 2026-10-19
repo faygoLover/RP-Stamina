@@ -60,6 +60,14 @@ public final class StaminaManager {
         return !(Config.SKIP_CREATIVE.get() && p.isCreative()) || p.getTags().contains(FORCE_TAG);
     }
 
+    /**
+     * Творческий режим с тегом {@link #FORCE_TAG}: выносливость считается, но тратит её только мод, поставивший тег
+     * (трата через API), — бег, прыжки, копание и прочие встроенные траты не идут (находка RP Sports 110).
+     */
+    public static boolean onlyForced(ServerPlayer p) {
+        return Config.SKIP_CREATIVE.get() && p.isCreative() && p.getTags().contains(FORCE_TAG);
+    }
+
     private static double attr(LivingEntity e, Attribute a, double def) {
         AttributeInstance inst = e.getAttribute(a);
         return inst == null ? def : inst.getValue();
@@ -78,6 +86,7 @@ public final class StaminaManager {
     // =====================================================================
 
     public static void consume(ServerPlayer p, PlayerStamina s, Source src, double base) {
+        if (onlyForced(p)) return;
         consume(p, s, src.id, base, src.category, src.armor, src.continuous);
     }
 
