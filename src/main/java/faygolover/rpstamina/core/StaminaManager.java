@@ -289,6 +289,7 @@ public final class StaminaManager {
     /** Предмет употреблён (Finish): восстановление, толерантность, откат. */
     public static void onConsumeItem(ServerPlayer p, PlayerStamina s, ItemStack stack) {
         StaminaData.Consumable c = StaminaData.findConsumable(stack);
+        if (c == null) c = coreCaffeine(stack);
         if (c == null || !isActive(p)) return;
 
         float efficiency = 1f;
@@ -314,6 +315,20 @@ public final class StaminaManager {
             startCrash(s, c.crash());
         }
         if (c.cooldownTicks() > 0) p.getCooldowns().addCooldown(stack.getItem(), c.cooldownTicks());
+    }
+
+    /**
+     * Кофеин из общей базы RP Core, если своего правила нет: бодрость и откат по силе (1 — чашка кофе: реген ×1.3
+     * на 10 мин, потом откат). Чай слабее и короче, «следы» (кола, шоколад) — почти ничего.
+     */
+    @javax.annotation.Nullable
+    private static StaminaData.Consumable coreCaffeine(ItemStack stack) {
+        faygolover.rpcore.api.Consumables.Entry e = faygolover.rpcore.api.Consumables.forItem(stack);
+        if (e == null || e.caffeine() <= 0) return null;
+        float k = (float) Math.min(1.5, e.caffeine());
+        int ticks = Math.round(12000 * Math.min(1f, k));
+        PlayerStamina.Crash crash = new PlayerStamina.Crash(Math.round(6000 * k), Math.max(0.7f, 1f - 0.2f * k), 0);
+        return new StaminaData.Consumable(null, 0f, 1, 0f, 0, "caffeine", 0, crash, 1f + 0.3f * k, ticks);
     }
 
     private static void startCrash(PlayerStamina s, PlayerStamina.Crash crash) {
