@@ -171,10 +171,11 @@ public final class ActionEvents {
         if (s != null) StaminaManager.onUseTick(player, s, event.getItem(), event.getDuration());
     }
 
+    /** Съел или выпил долю (RP Core: укус, глоток или целиком) — бодрость и восстановление этой долей. */
     @SubscribeEvent
-    public static void onUseFinish(LivingEntityUseItemEvent.Finish event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+    public static void onConsume(faygolover.rpcore.api.event.RpConsumeEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || event.fraction() <= 0) return;
         PlayerStamina s = StaminaProvider.get(player);
-        if (s != null) StaminaManager.onConsumeItem(player, s, event.getItem());
+        if (s != null) StaminaManager.onConsumeItem(player, s, event.stack(), (float) Math.min(1, event.fraction()));
     }
 }

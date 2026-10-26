@@ -288,9 +288,16 @@ public final class StaminaManager {
 
     /** Предмет употреблён (Finish): восстановление, толерантность, откат. */
     public static void onConsumeItem(ServerPlayer p, PlayerStamina s, ItemStack stack) {
+        onConsumeItem(p, s, stack, 1f);
+    }
+
+    /** {@code share} — доля предмета (укус, глоток): прибавки и бодрость — этой долей. */
+    public static void onConsumeItem(ServerPlayer p, PlayerStamina s, ItemStack stack, float share) {
         StaminaData.Consumable c = StaminaData.findConsumable(stack);
         if (c == null) c = coreCaffeine(stack);
         if (c == null || !isActive(p)) return;
+        if (share < 1f) c = new StaminaData.Consumable(c.matcher(), c.instant() * share, c.instantTicks(), c.passivePerTick() * share,
+                c.durationTicks(), c.group(), c.cooldownTicks(), c.crash(), 1f + (c.regenMultiplier() - 1f) * share, c.regenTicks());
 
         float efficiency = 1f;
         if (c.group() != null) {
