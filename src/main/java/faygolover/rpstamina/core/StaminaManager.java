@@ -544,8 +544,10 @@ public final class StaminaManager {
         if (s.stamina >= max) return;
 
         double target;
-        if (p.isSleeping()) target = Config.REGEN_SLEEP.get();
-        else if (p.isPassenger()) target = Config.REGEN_SIT.get()
+        // RP Core 0.11.0: сон сидя или лёжа (/sleep) — как сон, /sit и /lay — как сидение на стуле.
+        var posture = faygolover.rpcore.api.RpCoreAPI.posture(p);
+        if (p.isSleeping() || faygolover.rpcore.api.RpCoreAPI.postureSleeping(p)) target = Config.REGEN_SLEEP.get();
+        else if (p.isPassenger() || posture != faygolover.rpcore.api.RpCoreAPI.Posture.NONE) target = Config.REGEN_SIT.get()
                 * (faygolover.rpcore.api.RpCoreAPI.hasTrait(p, faygolover.rpcore.api.RpIds.QUICK_REST) ? Config.QUICK_REST_MULT.get() : 1.0);
         else if (standing) target = p.isCrouching() ? Math.max(Config.REGEN_CROUCH.get(), Config.REGEN_STAND.get()) : Config.REGEN_STAND.get();
         else target = Config.REGEN_WALK.get();
