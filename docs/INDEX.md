@@ -1,10 +1,10 @@
 # RP Stamina — указатель кода
 
-Создано `python _family/tools/mapgen.py` 15.11.2026, версия 1.5.1-1.20.1-forge, коммит `7a9c2cb`.
+Создано `python _family/tools/mapgen.py`, версия мода 1.5.1-1.20.1-forge.
 **Руками не править**: пересоздаётся скриптом. Смысл, потоки работы и рецепты — в `docs/MAP.md`.
 Разбор по шаблонам, без компиляции: необычно оформленная регистрация может отсутствовать в списках.
 
-Всего: 27 файлов, 2703 строк Java.
+Всего: 28 файлов, 2873 строк Java.
 
 ## 1. Пакеты
 
@@ -19,6 +19,7 @@
 | `faygolover.rpstamina.core` | 2 | 750 |
 | `faygolover.rpstamina.data` | 4 | 506 |
 | `faygolover.rpstamina.events` | 3 | 236 |
+| `faygolover.rpstamina.gametest` | 1 | 170 |
 | `faygolover.rpstamina.integration` | 1 | 56 |
 | `faygolover.rpstamina.mixin` | 1 | 26 |
 | `faygolover.rpstamina.network` | 2 | 80 |
@@ -66,6 +67,9 @@
 - `LifecycleEvents`, 27 — События мод-шины: перечитывание конфига на работающем сервере.
 - `TimeEvents`, 27 — Время RP (RP Core, /rptime).
 
+### `faygolover.rpstamina.gametest`
+- `StaminaEdgeTests`, 170 — Края состояния выносливости: запись и чтение, смерть, возврат из Края, перезаход.
+
 ### `faygolover.rpstamina.integration`
 - `CoreStamina`, 56 — Розетка выносливости RP Core: через неё другие моды семейства спрашивают выносливость и вешают свои модификаторы на атрибуты Stamina, не ища их по имени.
 
@@ -76,7 +80,7 @@
 - `NetworkHandler`, 26 — *без описания*
 - `SyncPacket`, 54 — Сервер → клиент.
 
-Классов без описания: 3 из 27.
+Классов без описания: 3 из 28.
 
 ## 3. Подписки на события
 
