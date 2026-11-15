@@ -1,6 +1,6 @@
 # RP Stamina — указатель кода
 
-Создано `python _family/tools/mapgen.py` 15.11.2026, версия 1.5.1-1.20.1-forge, коммит `1d8f3ae`.
+Создано `python _family/tools/mapgen.py` 15.11.2026, версия 1.5.1-1.20.1-forge, коммит `7a9c2cb`.
 **Руками не править**: пересоздаётся скриптом. Смысл, потоки работы и рецепты — в `docs/MAP.md`.
 Разбор по шаблонам, без компиляции: необычно оформленная регистрация может отсутствовать в списках.
 
@@ -121,7 +121,7 @@
 
 ## 6. Данные
 
-- capability: `StaminaProvider`
+- capability: `StaminaProvider` (ключ задан в другом классе)
 - свои файлы на диске: `DataLoaders`
 - capability: `ActionEvents`, ключ `rpstamina:stamina`
 
