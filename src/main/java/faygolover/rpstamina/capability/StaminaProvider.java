@@ -1,45 +1,51 @@
 package faygolover.rpstamina.capability;
 
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import faygolover.rpcore.api.data.PlayerStore;
+import faygolover.rpstamina.Config;
+import faygolover.rpstamina.RpStamina;
+import faygolover.rpstamina.core.StaminaManager;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StaminaProvider implements ICapabilitySerializable<CompoundTag> {
-    public static final Capability<PlayerStamina> STAMINA = CapabilityManager.get(new CapabilityToken<>() {});
+/**
+ * Данные выносливости игрока: capability и доступ к ней. Хранение, копию при возрождении и вызовы на входе ведёт
+ * RP Core ({@link PlayerStore}); имя ветки в сохранении — прежнее, {@code rpstamina:stamina}.
+ * <p>
+ * Не путать с {@code faygolover.rpcore.api.StaminaProvider} — это розетка выносливости RP Core
+ * (её реализует {@code integration/CoreStamina}).
+ */
+public final class StaminaProvider {
+    private StaminaProvider() {}
 
-    private final PlayerStamina data = new PlayerStamina();
-    private final LazyOptional<PlayerStamina> optional = LazyOptional.of(() -> data);
+    public static final Capability<PlayerStamina> STAMINA = CapabilityManager.get(new CapabilityToken<>() {});
+    public static final ResourceLocation ID = new ResourceLocation(RpStamina.MODID, "stamina");
+    /** Заполняется в {@link #register()}. */
+    public static PlayerStore<PlayerStamina> STORE;
+
+    /**
+     * Описать данные для RP Core. Вызывается из конструктора мода. При смерти выносливость сбрасывается, если так
+     * велит настройка {@code reset_on_death}; при возврате из Края переносится всё. На фальшивых игроков не вешается.
+     */
+    public static void register() {
+        STORE = PlayerStore.of(ID, PlayerStamina.class, STAMINA, PlayerStamina::new)
+                .save(PlayerStamina::save)
+                .load(PlayerStamina::load)
+                .clone((old, fresh, ctx) -> fresh.copyFrom(old, ctx.wasDeath() && Config.RESET_ON_DEATH.get()))
+                // База максимума — на входе и после возрождения; при смене измерения атрибуты игрока остаются.
+                .resync((sp, why) -> {
+                    if (why != PlayerStore.Sync.DIMENSION) StaminaManager.applyBaseMax(sp);
+                })
+                .skipFakePlayers()
+                .register();
+    }
 
     /** Данные игрока или null, если capability нет (например, фейковый игрок). */
     @Nullable
     public static PlayerStamina get(Player player) {
         return player.getCapability(STAMINA).resolve().orElse(null);
-    }
-
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return cap == STAMINA ? optional.cast() : LazyOptional.empty();
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return data.save();
-    }
-
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        data.load(nbt);
-    }
-
-    public void invalidate() {
-        optional.invalidate();
     }
 }

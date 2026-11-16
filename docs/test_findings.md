@@ -2,7 +2,11 @@
 
 ## 15.11.2026 — тесты краёв состояния (план `_family/refactor`, T0.3). Не исправлено.
 
-1. **Данные выносливости не копируются при смерти и при возврате из Края.**
+1. **ИСПРАВЛЕНО 16.11.2026 (1.5.2, решение Алекса 15.11, план T2.3): данные выносливости не копировались при
+   смерти и при возврате из Края.** Данные переведены на `PlayerStore` RP Core, подписка `invalidate` убрана, тесты
+   `deathResets` и `endReturnKeepsAll` обязательные и проходят. Теперь: возврат из Края сохраняет выносливость,
+   измотанность, толерантность и стимуляторы; откат «Второго дыхания» переживает смерть; `reset_on_death = false`
+   работает. Как было:
    `capability/StaminaProvider.invalidate()` вызывает `optional.invalidate()` (подписан в `ActionEvents.onAttach`
    через `event.addListener`). Погашенный `LazyOptional` назад не оживает, `reviveCaps()` его не восстанавливает.
    Поэтому в `ActionEvents.onClone` `StaminaProvider.get(event.getOriginal())` возвращает `null`, и `copyFrom` не

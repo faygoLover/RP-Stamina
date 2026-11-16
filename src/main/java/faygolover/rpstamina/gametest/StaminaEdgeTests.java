@@ -97,11 +97,8 @@ public final class StaminaEdgeTests {
     /**
      * Смерть при reset_on_death = true (по умолчанию): выносливость заново, измотанность и толерантность сняты,
      * откат «второго дыхания» остаётся.
-     * <p><b>Сейчас падает — находка 15.11 (docs/test_findings.md):</b> {@code StaminaProvider.invalidate} навсегда гасит
-     * {@code LazyOptional}, {@code reviveCaps} его не оживляет, поэтому {@code ActionEvents.onClone} не находит старые
-     * данные и ничего не копирует. Тест необязательный, пока находку не починят; после починки убрать {@code required = false}.
      */
-    @GameTest(template = T, batch = "stamina_edge_death", required = false)
+    @GameTest(template = T, batch = "stamina_edge_death")
     public static void deathResets(GameTestHelper h) {
         if (!Config.RESET_ON_DEATH.get()) { h.fail("Тест рассчитан на reset_on_death = true"); return; }
         ServerPlayer p = player(h);
@@ -124,11 +121,8 @@ public final class StaminaEdgeTests {
 
     /**
      * Возврат из Края (не смерть): значение, измотанность, толерантность и откат сохраняются.
-     * <p><b>Сейчас падает — находка 15.11 (docs/test_findings.md):</b> {@code StaminaProvider.invalidate} навсегда гасит
-     * {@code LazyOptional}, {@code reviveCaps} его не оживляет, поэтому {@code ActionEvents.onClone} не находит старые
-     * данные и ничего не копирует. Тест необязательный, пока находку не починят; после починки убрать {@code required = false}.
      */
-    @GameTest(template = T, batch = "stamina_edge_end", required = false)
+    @GameTest(template = T, batch = "stamina_edge_end")
     public static void endReturnKeepsAll(GameTestHelper h) {
         ServerPlayer p = player(h);
         PlayerStamina d = StaminaProvider.get(p);

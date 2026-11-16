@@ -1,25 +1,25 @@
 # RP Stamina — указатель кода
 
-Создано `python _family/tools/mapgen.py`, версия мода 1.5.1-1.20.1-forge.
+Создано `python _family/tools/mapgen.py`, версия мода 1.5.2-1.20.1-forge.
 **Руками не править**: пересоздаётся скриптом. Смысл, потоки работы и рецепты — в `docs/MAP.md`.
 Разбор по шаблонам, без компиляции: необычно оформленная регистрация может отсутствовать в списках.
 
-Всего: 28 файлов, 2873 строк Java.
+Всего: 28 файлов, 2832 строк Java.
 
 ## 1. Пакеты
 
 | Пакет | Файлов | Строк |
 |---|---:|---:|
-| `faygolover.rpstamina` | 3 | 295 |
+| `faygolover.rpstamina` | 3 | 289 |
 | `faygolover.rpstamina.api` | 3 | 114 |
 | `faygolover.rpstamina.attribute` | 1 | 59 |
-| `faygolover.rpstamina.capability` | 2 | 187 |
+| `faygolover.rpstamina.capability` | 2 | 193 |
 | `faygolover.rpstamina.client` | 4 | 232 |
 | `faygolover.rpstamina.command` | 1 | 162 |
 | `faygolover.rpstamina.core` | 2 | 750 |
 | `faygolover.rpstamina.data` | 4 | 506 |
-| `faygolover.rpstamina.events` | 3 | 236 |
-| `faygolover.rpstamina.gametest` | 1 | 170 |
+| `faygolover.rpstamina.events` | 3 | 201 |
+| `faygolover.rpstamina.gametest` | 1 | 164 |
 | `faygolover.rpstamina.integration` | 1 | 56 |
 | `faygolover.rpstamina.mixin` | 1 | 26 |
 | `faygolover.rpstamina.network` | 2 | 80 |
@@ -29,7 +29,7 @@
 ### `faygolover.rpstamina`
 - `ClientConfig`, 76 — Клиентский конфиг: полоска выносливости.
 - `Config`, 168 — Серверный конфиг механики.
-- `RpStamina`, 51 — *без описания*
+- `RpStamina`, 45 — *без описания*
 
 ### `faygolover.rpstamina.api`
 - `StaminaAPI`, 50 — Публичный API для других модов (например, rpperks).
@@ -41,7 +41,7 @@
 
 ### `faygolover.rpstamina.capability`
 - `PlayerStamina`, 141 — Состояние выносливости игрока (только сервер).
-- `StaminaProvider`, 46 — *без описания*
+- `StaminaProvider`, 52 — Данные выносливости игрока: capability и доступ к ней.
 
 ### `faygolover.rpstamina.client`
 - `ClientEvents`, 32 — Клиентская логика (шина Forge): продвижение полоски между пакетами.
@@ -63,12 +63,12 @@
 - `StaminaData`, 96 — Загруженные данные датапака (только сервер).
 
 ### `faygolover.rpstamina.events`
-- `ActionEvents`, 182 — Игровые события, из которых складывается механика выносливости (шина Forge).
+- `ActionEvents`, 147 — Игровые события, из которых складывается механика выносливости (шина Forge).
 - `LifecycleEvents`, 27 — События мод-шины: перечитывание конфига на работающем сервере.
 - `TimeEvents`, 27 — Время RP (RP Core, /rptime).
 
 ### `faygolover.rpstamina.gametest`
-- `StaminaEdgeTests`, 170 — Края состояния выносливости: запись и чтение, смерть, возврат из Края, перезаход.
+- `StaminaEdgeTests`, 164 — Края состояния выносливости: запись и чтение, смерть, возврат из Края, перезаход.
 
 ### `faygolover.rpstamina.integration`
 - `CoreStamina`, 56 — Розетка выносливости RP Core: через неё другие моды семейства спрашивают выносливость и вешают свои модификаторы на атрибуты Stamina, не ища их по имени.
@@ -80,14 +80,13 @@
 - `NetworkHandler`, 26 — *без описания*
 - `SyncPacket`, 54 — Сервер → клиент.
 
-Классов без описания: 3 из 28.
+Классов без описания: 2 из 28.
 
 ## 3. Подписки на события
 
 | Событие | Кто слушает |
 |---|---|
 | `AddReloadListenerEvent` | `DataLoaders.onAddListeners` |
-| `AttachCapabilitiesEvent` | `ActionEvents.onAttach` |
 | `AttackEntityEvent` | `ActionEvents.onAttack` |
 | `BlockEvent.BreakEvent` | `ActionEvents.onBlockBreak` |
 | `ClientPlayerNetworkEvent.LoggingOut` | `ClientEvents.onLogout` |
@@ -100,10 +99,6 @@
 | `LivingHurtEvent` | `ActionEvents.onHurt` |
 | `ModConfigEvent.Reloading` | `LifecycleEvents.onConfigReload` |
 | `PlayerEvent.BreakSpeed` | `ActionEvents.onBreakSpeed` |
-| `PlayerEvent.Clone` | `ActionEvents.onClone` |
-| `PlayerEvent.PlayerLoggedInEvent` | `ActionEvents.onLogin` |
-| `PlayerEvent.PlayerRespawnEvent` | `ActionEvents.onRespawn` |
-| `RegisterCapabilitiesEvent` | `RpStamina.registerCapabilities` |
 | `RegisterCommandsEvent` | `StaminaCommand.onRegister` |
 | `RpTimeSkipEvent` | `TimeEvents.onTimeSkip` |
 | `ShieldBlockEvent` | `ActionEvents.onShieldBlock` |
@@ -125,9 +120,8 @@
 
 ## 6. Данные
 
-- capability: `StaminaProvider` (ключ задан в другом классе)
+- capability: `StaminaProvider`, ключ `rpstamina:stamina`
 - свои файлы на диске: `DataLoaders`
-- capability: `ActionEvents`, ключ `rpstamina:stamina`
 
 ## 7. Конфиги
 
@@ -146,7 +140,7 @@
 
 Проверки `isLoaded`: `rpperks` (StaminaManager); `rpstamina` (StaminaAPI).
 
-Пакеты других модов семейства в коде: `rpcore` — 8 файлов.
+Пакеты других модов семейства в коде: `rpcore` — 9 файлов.
 
 Миксины (1):
 - `LocalPlayerMixin` (client) → LocalPlayer.class

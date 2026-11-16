@@ -2,10 +2,8 @@ package faygolover.rpstamina;
 
 import com.mojang.logging.LogUtils;
 import faygolover.rpstamina.attribute.StaminaAttributes;
-import faygolover.rpstamina.capability.PlayerStamina;
 import faygolover.rpstamina.data.DataLoaders;
 import faygolover.rpstamina.network.NetworkHandler;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -23,17 +21,13 @@ public class RpStamina {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         StaminaAttributes.ATTRIBUTES.register(modBus);
         modBus.addListener(StaminaAttributes::onAttributeModification);
-        modBus.addListener(this::registerCapabilities);
+        faygolover.rpstamina.capability.StaminaProvider.register();
         modBus.addListener(this::commonSetup);
 
         // SERVER-конфиг (как в rpperks): serverconfig/rpstamina-server.toml в папке мира
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SPEC);
         // CLIENT-конфиг: положение и внешний вид полоски (config/rpstamina-client.toml)
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
-    }
-
-    private void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.register(PlayerStamina.class);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
